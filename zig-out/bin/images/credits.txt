@@ -1,0 +1,42 @@
+
+All the images at the given URLs are either public domain or licensed under CC0. I have edited some of them.
+All the images without any URL are entirely made by me.
+
+title / start button / stone            https://publicdomainvectors.org/en/free-clipart/Cliffs-in-nature/74336.html
+title / screen                          (this image is a mash-up of many other images, all listed in this document)
+
+home / background / tree                http://www.publicdomainfiles.com/show_file.php?id=13925582418820
+home / background / cloud               http://www.publicdomainfiles.com/show_file.php?id=13526233216312
+home / background / cloud               https://publicdomainvectors.org/en/free-clipart/Vector-drawing-of-weather-forecast-color-symbol-for-overcast-sky/18976.html
+home / background / field               http://www.publicdomainfiles.com/show_file.php?id=13526457013454
+home / background / rocks               https://publicdomainvectors.org/en/free-clipart/Rock-rubble-vector-image/74334.html
+home / background / mountain            https://publicdomainvectors.org/en/free-clipart/Alpine-rocks/46653.html
+home / buttons / (vases)                https://publicdomainvectors.org/en/free-clipart/Vector-drawing-of-large-green-leaves-plant-in-pot/32066.html
+home / buttons / (bones)                https://www.pdclipart.org/displayimage.php?album=search&cat=0&pos=4
+
+menu / background                       -
+menu / credits / parchment              https://publicdomainvectors.org/en/free-clipart/Vector-illustration-of-parchment-background/22814.html
+menu / help / parchment                 http://www.publicdomainfiles.com/show_file.php?id=14020924813091
+menu / (options)                        -
+
+field / flowers / (flowers)             https://opengameart.org/content/flower-pack
+field / flowers / stone                 https://publicdomainvectors.org/en/free-clipart/Harvestable-rock-vector-illustration/31611.html
+field / monsters / bats                 https://opengameart.org/content/bat-32x32
+field / monsters / ghost                https://opengameart.org/content/skeleton-and-ghost-spritesheets-ars-notoria
+field / monsters / skeletons            https://opengameart.org/content/skeletons-rework
+field / monsters / undead               https://opengameart.org/content/zombie-survivior-walk
+field / monsters / undead fast          https://opengameart.org/content/zombie-survivior-run
+field / shots / (thorns)                -
+field / background / field              -
+field / background / grass		https://www.publicdomainpictures.net/en/view-image.php?image=401177&picture=grass-background-clipart
+field / row removed                     -
+field / (seeds) / sachet                -
+field / (seeds) / water                 http://www.publicdomainfiles.com/show_file.php?id=14023159212540
+field / signs / wood                    https://publicdomainvectors.org/en/free-clipart/Wood-texture/39404.html
+field / signs / shape                   -
+field / (water)                         -
+field / watering can                    https://www.rawpixel.com/image/6483105/psd-sticker-public-domain-illustrations
+field / shovel                          https://publicdomainvectors.org/en/free-clipart/Childrens-bucket-and-spade-vector-clip-art/19299.html
+
+disclaimer                              -
+(digits)                                -
