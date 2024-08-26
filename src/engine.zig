@@ -55,12 +55,12 @@ pub const Cell = struct {
 pub const FlowerKind = enum {
 	rose,
 	philodendron,
+	rose_double,
 //	cactus_instant, //TODO: add (explodes instantly killing nearby monsters)
 	stone,
 //	cactus_small, //TODO: add (explodes when a monster walks on it)
 	rose_white,
 //	carnivorous, //TODO: add (eats monsters in front of it)
-//	rose_double, //TODO: add (shots twice as fast as the rose)
 //	...,
 
 	pub fn get_cost(kind: FlowerKind) u32 {
@@ -70,9 +70,9 @@ pub const FlowerKind = enum {
 		//	.cactus_instant => 150,
 			.stone          =>  50,
 		//	.cactus_small   =>  25,
+			.rose_double    => 225,
 			.rose_white     => 175,
 		//	.carnivorous    => 150,
-		//	.rose_double    => 200,
 		};
 	}
 
@@ -83,9 +83,9 @@ pub const FlowerKind = enum {
 		//	.cactus_instant => null,
 			.stone          => 4000,
 		//	.cactus_small   => 300,
+			.rose_double    => 400,
 			.rose_white     => 300,
 		//	.carnivorous    => 300,
-		//	.rose_double    => 300,
 		};
 	}
 
@@ -96,9 +96,9 @@ pub const FlowerKind = enum {
 		//	.cactus_instant => null,
 			.stone          => null,
 		//	.cactus_small   => null,
+			.rose_double    =>  0.5,
 			.rose_white     =>  1.0,
 		//	.carnivorous    => 42.0,
-		//	.rose_double    =>  0.5,
 		};
 	}
 
@@ -109,9 +109,9 @@ pub const FlowerKind = enum {
 		//	.cactus_instant => null,
 			.stone          => null,
 		//	.cactus_small   => 16.0,
+			.rose_double    =>  0.0,
 			.rose_white     =>  0.0,
 		//	.carnivorous    =>  0.0,
-		//	.rose_double    =>  0.0,
 		};
 	}
 
@@ -399,7 +399,7 @@ pub fn forward(duration: f32, field: *Field, progress: *Progress) !void {
 					};
 					switch (flower.kind) {
 						.rose,
-					//	.rose_double,
+						.rose_double,
 						.rose_white => {
 							//TODO: if (no monster in sight) continue;
 

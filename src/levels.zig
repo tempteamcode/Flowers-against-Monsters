@@ -41,7 +41,7 @@ pub const levels = [_]Level {
 		},
 	},
 	.{ // 3
-		.seeds_kind = .{ .fixed = &.{ .rose, .philodendron, .stone } }, //TODO: add .cactus_instant
+		.seeds_kind = .{ .fixed = &.{ .rose, .philodendron, .stone, .rose_double } }, //TODO: add .cactus_instant
 		.waves = &.{
 			.{ .timestamp_beg =       -4.0*sec, .timestamp_end = 2*min         , .monsters = &.{ .skeleton }, .monsters_freq = &.{ 24.0*sec } },
 			.{ .timestamp_beg = 1*min+20.1*sec, .timestamp_end = 2*min+32.5*sec, .monsters = &.{ .skeleton }, .monsters_freq = &.{ 12.0*sec } },
@@ -52,7 +52,7 @@ pub const levels = [_]Level {
 		},
 	},
 	.{ // 4
-		.seeds_kind = .{ .fixed = &.{ .rose, .philodendron, .stone } }, //TODO: add .cactus_instant, .cactus_small
+		.seeds_kind = .{ .fixed = &.{ .rose, .philodendron, .stone, .rose_double } }, //TODO: add .cactus_instant, .cactus_small
 		.waves = &.{
 			.{ .timestamp_beg =        0.0*sec, .timestamp_end = 1*min+40.0*sec, .monsters = &.{ .skeleton }, .monsters_freq = &.{ 24.0*sec } },
 			.{ .timestamp_beg = 1*min+20.0*sec, .timestamp_end = 3*min         , .monsters = &.{ .skeleton }, .monsters_freq = &.{ 14.0*sec } },
@@ -63,7 +63,7 @@ pub const levels = [_]Level {
 		},
 	},
 	.{ // 5
-		.seeds_kind = .{ .fixed = &.{ .rose, .philodendron, .stone, .rose_white } }, //TODO: add .cactus_instant, .cactus_small
+		.seeds_kind = .{ .fixed = &.{ .rose, .philodendron, .stone, .rose_white, .rose_double } }, //TODO: add .cactus_instant, .cactus_small
 		.waves = &.{
 			.{ .timestamp_beg =       16.0*sec - 16.0*sec, .timestamp_end = 5*min+25.0*sec, .monsters = &.{ .skeleton }, .monsters_freq = &.{ 16.0*sec } },
 			.{ .timestamp_beg = 1*min+4.00*sec - 48.0*sec, .timestamp_end = 5*min+25.0*sec, .monsters = &.{ .ghost    }, .monsters_freq = &.{ 48.0*sec } },

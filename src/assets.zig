@@ -26,10 +26,12 @@ pub var img_game_watering_can           : io.gui.Image = undefined;
 pub var img_game_flower_rose            : io.gui.Image = undefined;
 pub var img_game_flower_philodendron    : io.gui.Image = undefined;
 pub var img_game_flower_stone           : io.gui.Image = undefined;
+pub var img_game_flower_rose_double     : io.gui.Image = undefined;
 pub var img_game_flower_rose_white      : io.gui.Image = undefined;
 pub var img_game_icon_rose              : io.gui.Image = undefined;
 pub var img_game_icon_philodendron      : io.gui.Image = undefined;
 pub var img_game_icon_stone             : io.gui.Image = undefined;
+pub var img_game_icon_rose_double       : io.gui.Image = undefined;
 pub var img_game_icon_rose_white        : io.gui.Image = undefined;
 pub var img_game_shot_thorn             : io.gui.Image = undefined;
 pub var img_game_shot_thorn_frozen      : io.gui.Image = undefined;
@@ -93,10 +95,12 @@ const images_paths = [_] struct { *io.gui.Image, [:0]const u8 } {
 	.{ &img_game_flower_rose            , "images/field/flowers/64x/Red_Rose.png"                  },
 	.{ &img_game_flower_philodendron    , "images/field/flowers/64x/Light_Green_Chrysanthemum.png" },
 	.{ &img_game_flower_stone           , "images/field/flowers/64x/stone.png"                     },
+	.{ &img_game_flower_rose_double     , "images/field/flowers/64x/Red_Rose_Double.png"           },
 	.{ &img_game_flower_rose_white      , "images/field/flowers/64x/White_Rose.png"                },
 	.{ &img_game_icon_rose              , "images/field/flowers/32x/Red_Rose.png"                  },
 	.{ &img_game_icon_philodendron      , "images/field/flowers/32x/Light_Green_Chrysanthemum.png" },
 	.{ &img_game_icon_stone             , "images/field/flowers/32x/stone.png"                     },
+	.{ &img_game_icon_rose_double       , "images/field/flowers/32x/Red_Rose_Double.png"           },
 	.{ &img_game_icon_rose_white        , "images/field/flowers/32x/White_Rose.png"                },
 	.{ &img_game_shot_thorn             , "images/field/shots/64x/thorn.png"                       },
 	.{ &img_game_shot_thorn_frozen      , "images/field/shots/64x/thorn frozen.png"                },

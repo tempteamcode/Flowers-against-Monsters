@@ -150,6 +150,7 @@ fn screen_game_refresh(allocator: std.mem.Allocator, window: io.gui.Window, stat
 				.rose           => assets.img_game_flower_rose        ,
 				.philodendron   => assets.img_game_flower_philodendron,
 				.stone          => assets.img_game_flower_stone       ,
+				.rose_double    => assets.img_game_flower_rose_double ,
 				.rose_white     => assets.img_game_flower_rose_white  ,
 			};
 			window.blit_image(image, coords);
@@ -171,6 +172,7 @@ fn screen_game_refresh(allocator: std.mem.Allocator, window: io.gui.Window, stat
 				.rose           => assets.img_game_icon_rose        ,
 				.philodendron   => assets.img_game_icon_philodendron,
 				.stone          => assets.img_game_icon_stone       ,
+				.rose_double    => assets.img_game_icon_rose_double ,
 				.rose_white     => assets.img_game_icon_rose_white  ,
 			};
 			window.blit_image(
@@ -244,7 +246,7 @@ pub fn screen_game(window: io.gui.Window, level_index: usize) !ScreenGameOutcome
 		status.field.collectibles.deinit();
 	}
 
-	const all_seeds: []const engine.FlowerKind = &.{ .rose, .philodendron, .stone, .rose_white };
+	const all_seeds: []const engine.FlowerKind = &.{ .rose, .philodendron, .stone, .rose_white, .rose_double };
 	const level_seeds = switch (level.seeds_kind) { 
 		.fixed => |seeds| seeds,
 		.player_choice => all_seeds, //TODO: add a seed selection screen instead
