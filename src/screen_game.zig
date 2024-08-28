@@ -255,7 +255,7 @@ pub fn screen_game(window: io.gui.Window, level_index: usize) !ScreenGameOutcome
 
 	try screen_game_refresh(allocator, window, &status);
 
-	try io.music.play_file("musics/Raze the Groof.it", .loop);
+	try io.music.play(assets.mus_RazeTheGroof, .loop);
 	defer io.music.stop();
 
 	try io.gui.timer_set(0.05, .loop);
@@ -296,25 +296,26 @@ pub fn screen_game(window: io.gui.Window, level_index: usize) !ScreenGameOutcome
 						const collectible = status.field.collectibles.orderedRemove(i);
 						switch (collectible.kind) {
 							.water => {
-								//TODO: sound play water collected
+								io.sound.play(assets.snd_collect_water) catch {};
 
 								if (status.progress.water) |*water| water.* += engine.water_worth;
 							},
 						}
 					} else if (status.mouse.seeds_hovered) |seeds_hovered| {
-						//TODO: sound play seeds clicked
+						io.sound.play(assets.snd_select_seed) catch {};
 
 						status.mouse.seeds_selected = if (status.mouse.seeds_selected == seeds_hovered) null else seeds_hovered;
 					} else if (status.mouse.seeds_selected) |seeds_selected| {
 						if (status.progress.seeds[seeds_selected]) |*seeds| {
 							const field_coords = screen_to_field(mouse_coords);
 							if (engine.put_seeds(seeds, field_coords, &status.field, &status.progress) == .put) {
-								//TODO: sound play flower planted
+								io.sound.play(assets.snd_flower_planted) catch {};
 
 								status.mouse.seeds_selected = null;
 							}
 						}
 					} else if (status.mouse.sign_hovered) {
+						io.sound.play(assets.snd_button) catch {};
 						return switch (status.progress.state) {
 							.fighting => .stop,
 							.victory => .next,

@@ -6,7 +6,7 @@ const screens = @import("screens.zig");
 const screen_game = @import("screen_game.zig");
 
 fn screen_home_callback(btn_index: usize, window: io.gui.Window) !?screens.ScreenOutcome {
-	// TODO: play button sound
+	try io.sound.play(assets.snd_button);
 
 	return switch (btn_index) {
 		0 => try screen_game.screen_level_select(window),    // new game
@@ -33,7 +33,7 @@ pub fn screen_home(window: io.gui.Window) !void {
 		switch (try screen.show(window)) {
 			.done => {
 				io.music.stop();
-				try io.music.play_file("musics/Daisy Crave.it", .loop);
+				try io.music.play(assets.mus_DaisyCrave, .loop);
 
 				continue;
 			},
@@ -55,7 +55,7 @@ fn screen_credits(window: io.gui.Window) !screens.ScreenOutcome {
 	window.refresh();
 
 
-	try io.music.play_file("musics/Grainiac Maniac.it", .loop);
+	try io.music.play(assets.mus_GrainiacManiac, .loop);
 
 	while (true) {
 		const event = io.gui.get_event_blocking();

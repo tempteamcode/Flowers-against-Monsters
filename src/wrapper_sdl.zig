@@ -10,8 +10,7 @@ const c_png = @cImport({
 	@cInclude("lodepng.h");
 });
 
-var initialized_gui = false;
-var initialized_sound = false;
+var initialized = false;
 
 fn assert(expected: bool) void {
 	if (!expected) @panic("SDL does not work.");
@@ -34,15 +33,14 @@ export fn io_gui_timer_callback_loop(interval: u32) u32 {
 pub const gui = struct {
 
 	pub fn init() LibraryError!void {
-		if (initialized_gui) return;
-		const init_fn = if (initialized_sound) &c.SDL_InitSubSystem else &c.SDL_Init;
-		if (init_fn(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER) != 0) return error.Library;
-		initialized_gui = true;
+		if (initialized) return;
+		if (c.SDL_Init(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER) != 0) return error.Library;
+		initialized = true;
 	}
 	pub fn deinit() void {
-		if (!initialized_gui) return;
-		if (!initialized_sound) c.SDL_Quit() else c.SDL_QuitSubSystem(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER);
-		initialized_gui = false;
+		if (!initialized) return;
+		c.SDL_Quit();
+		initialized = false;
 	}
 
 	pub const Color = io_interface.gui.Color;
@@ -135,7 +133,7 @@ pub const gui = struct {
 		_screen: *c.SDL_Surface,
 
 		pub fn init(width: u31, height: u31, title: [:0]const u8) LibraryError!Window {
-			if (!initialized_gui) try gui.init();
+			if (!initialized) try gui.init();
 
 			const no_icon = 0;
 			c.SDL_WM_SetCaption(title, no_icon);
@@ -236,35 +234,6 @@ pub const gui = struct {
 	}
 
 	pub const Event = io_interface.gui.Event;
-
-};
-
-pub const sound = struct {
-
-	pub fn init() LibraryError!void {
-		if (initialized_sound) return;
-		const init_fn = if (initialized_gui) &c.SDL_InitSubSystem else &c.SDL_Init;
-		if (init_fn(c.SDL_INIT_AUDIO) != 0) return error.Library;
-		initialized_sound = true;
-	}
-	pub fn deinit() void {
-		if (!initialized_sound) return;
-		if (!initialized_gui) c.SDL_Quit() else c.SDL_QuitSubSystem(c.SDL_INIT_AUDIO);
-		initialized_sound = false;
-	}
-
-	pub const Sound = struct {
-		pub fn alloc_from_file(path: []const u8) LibraryError!Sound {
-			_ = path; // TODO: implement
-		}
-		pub fn free(snd: Sound) void {
-			_ = snd; // TODO: implement
-		}
-
-		pub fn play(snd: Sound) void {
-			_ = snd; comptime unreachable; // not implemented
-		}
-	};
 
 };
 

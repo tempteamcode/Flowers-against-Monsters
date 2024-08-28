@@ -95,9 +95,15 @@ pub fn haveSameInterface(lhs: anytype, rhs: anytype) bool {
 				haveSameFields(lhs, rhs, lti.Union.fields, rti.Union.fields) and
 				haveSameFields(lhs, rhs, lti.Union.decls, rti.Union.decls);
 		},
+		.Fn => {
+			if (lti.Fn.return_type != rti.Fn.return_type) { compileLogFmt("different return types: '{any}' vs '{any}'", .{ lti.Fn.return_type, rti.Fn.return_type }); return false; }
+			if (lti.Fn.params.len != rti.Fn.params.len) { compileLogFmt("different parameters count: '{any}' vs '{any}'", .{ lhs, rhs }); return false; }
+			for (lti.Fn.params, rti.Fn.params, 0..) |lpi, rpi, pi| if (pi > 0) if (lpi.type != rpi.type) { compileLogFmt("different parameter type: '{any}' vs '{any}'", .{ lpi.type, rpi.type }); return false; };
+			return true;
+		},
 		else => {
-			if (lhs != rhs) compileLogFmt("different types: '{any}' vs '{any}'", .{ lhs, rhs });
-			return lhs == rhs;
+			if (lhs != rhs) { compileLogFmt("different types: '{any}' vs '{any}'", .{ lhs, rhs }); return false; }
+			return true;
 		},
 	}
 }

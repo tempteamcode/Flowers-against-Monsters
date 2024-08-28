@@ -1,23 +1,31 @@
 
 All the sounds are licensed under CC0.
 
-gui / bone                      https://opengameart.org/content/8-bit-sound-effect-pack-vol-001 / Hit 6
+gui / button                    https://opengameart.org/content/8-bit-sound-effect-pack-vol-001 / Hit 6
+gui / selected_seed             https://opengameart.org/content/30-weird-cc0-sfx / weird_02
 collectibles / water            https://opengameart.org/content/40-cc0-water-splash-slime-sfx / bubble_02
 collectibles / pack / *         https://opengameart.org/content/level-up-power-up-coin-get-13-sounds
-shots / fireball                https://opengameart.org/content/8-bit-sound-effect-pack-vol-001 / Exit 1
-shots / pops / *                https://opengameart.org/content/3-pop-sounds
-shots / hit                     https://opengameart.org/content/8-bit-sound-effect-pack-vol-001 / Exit 3
-shots / lazer                   https://pixabay.com/sound-effects/lose-bass-45489/
-shots / more / *                https://opengameart.org/content/30-weird-cc0-sfx 
 flowers / noises / *            https://opengameart.org/content/20-rustles-dry-leaves
+flowers / planted               https://opengameart.org/content/20-rustles-dry-leaves / rustle09
+flowers / attacked              https://opengameart.org/content/20-rustles-dry-leaves / rustle10
+flowers / digged                https://opengameart.org/content/20-rustles-dry-leaves / rustle15
 flowers / explosion             https://opengameart.org/content/30-weird-cc0-sfx / weird_19
-monsters / eating               https://opengameart.org/content/80-cc0-creture-sfx-2 / monster_13
+shots / more / *                https://opengameart.org/content/30-weird-cc0-sfx
+shots / pops / *                https://opengameart.org/content/3-pop-sounds
+shots / fireball                https://opengameart.org/content/8-bit-sound-effect-pack-vol-001 / Exit 1
+shots / hit loud                https://opengameart.org/content/8-bit-sound-effect-pack-vol-001 / Exit 3
+shots / hit                     https://opengameart.org/content/3-pop-sounds / pop1
+shots / emitted                 https://opengameart.org/content/3-pop-sounds / pop2
+shots / lazer                   https://pixabay.com/sound-effects/lose-bass-45489/
+monsters / spawned              https://opengameart.org/content/zombie-sound
 monsters / steps                https://opengameart.org/content/steps-in-wood-floor
-monsters / noises / *           https://opengameart.org/content/25-cc0-mud-sfx 
 monsters / growl                https://opengameart.org/content/monster-5
+monsters / ate                  https://opengameart.org/content/80-cc0-creture-sfx-2 / monster_13
+monsters / died                 https://opengameart.org/content/25-cc0-mud-sfx / mud_25
+monsters / noises / *           https://opengameart.org/content/25-cc0-mud-sfx
 monsters / ghosts / ambiance    https://pixabay.com/sound-effects/ghost-wails-20457/
-monsters / undeads / boss       https://opengameart.org/content/zombie-boss-sound
-monsters / undeads / attack     https://opengameart.org/content/zombie-sound
 monsters / undeads / growl      https://opengameart.org/content/zombie-pain
 objects / lawnmower             https://pixabay.com/sound-effects/bike-firing-84547/
 success / magical_*             https://opengameart.org/content/magic-spell-sfx
+game / victory                  https://opengameart.org/content/level-up-power-up-coin-get-13-sounds / Rise05
+game / defeat                   https://opengameart.org/content/zombie-boss-sound

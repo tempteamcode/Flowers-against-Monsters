@@ -2,6 +2,26 @@
 const io = @import("io.zig");
 
 
+pub var mus_DaisyCrave    : io.music.Music = undefined;
+pub var mus_GrainiacManiac: io.music.Music = undefined;
+pub var mus_RazeTheGroof  : io.music.Music = undefined;
+
+
+pub var snd_button         : io.sound.Sound = undefined;
+pub var snd_select_seed    : io.sound.Sound = undefined;
+pub var snd_collect_water  : io.sound.Sound = undefined;
+pub var snd_flower_planted : io.sound.Sound = undefined;
+pub var snd_flower_digged  : io.sound.Sound = undefined;
+pub var snd_flower_attacked: io.sound.Sound = undefined;
+pub var snd_shot_emitted   : io.sound.Sound = undefined;
+pub var snd_shot_hit       : io.sound.Sound = undefined;
+pub var snd_monster_spawned: io.sound.Sound = undefined;
+pub var snd_monster_ate    : io.sound.Sound = undefined;
+pub var snd_monster_dead   : io.sound.Sound = undefined;
+pub var snd_game_victory   : io.sound.Sound = undefined;
+pub var snd_game_defeat    : io.sound.Sound = undefined;
+
+
 pub var img_home_bg                   : io.gui.Image = undefined;
 pub var img_home_btn_newgame          : io.gui.Image = undefined;
 pub var img_home_btn_newgame_hovered  : io.gui.Image = undefined;
@@ -68,6 +88,23 @@ pub var img_digits_tiny: io.gui.Image = undefined;
 pub const nb_digits = 10;
 
 
+const sounds_paths = [_] struct { *io.sound.Sound, [:0]const u8 } {
+	.{ &snd_button         , "sounds/gui/button.wav"         },
+	.{ &snd_select_seed    , "sounds/gui/selected_seed.ogg"  },
+	.{ &snd_collect_water  , "sounds/collectibles/water.ogg" },
+	.{ &snd_flower_planted , "sounds/flowers/planted.wav"    },
+	.{ &snd_flower_digged  , "sounds/flowers/digged.wav"     },
+	.{ &snd_flower_attacked, "sounds/flowers/attacked.wav"   },
+	.{ &snd_shot_emitted   , "sounds/shots/emitted.ogg"      },
+	.{ &snd_shot_hit       , "sounds/shots/hit.ogg"          },
+	.{ &snd_monster_spawned, "sounds/monsters/spawned.wav"   },
+	.{ &snd_monster_ate    , "sounds/monsters/ate.ogg"       },
+	.{ &snd_monster_dead   , "sounds/monsters/died.ogg"      },
+	.{ &snd_game_victory   , "sounds/game/victory.aif"       },
+	.{ &snd_game_defeat    , "sounds/game/defeat.wav"        },
+};
+
+
 const images_paths = [_] struct { *io.gui.Image, [:0]const u8 } {
 	.{ &img_home_bg                   , "images/home/background.png"                        },
 	.{ &img_home_btn_newgame          , "images/home/buttons/new game.png"                  },
@@ -126,24 +163,50 @@ const images_paths = [_] struct { *io.gui.Image, [:0]const u8 } {
 };
 
 
-pub fn init() !void {
-	for (images_paths, 0..) |image_path, i| {
-		errdefer deinit_until(i);
+pub fn musics_init() !void {
+	mus_DaisyCrave     = try io.music.Music.alloc_from_file("musics/Daisy Crave.it"    ); errdefer mus_DaisyCrave.free();
+	mus_GrainiacManiac = try io.music.Music.alloc_from_file("musics/Grainiac Maniac.it"); errdefer mus_GrainiacManiac.free();
+	mus_RazeTheGroof   = try io.music.Music.alloc_from_file("musics/Raze the Groof.it" ); errdefer comptime unreachable; //mus_RazeTheGroof.free();
+}
+pub fn musics_deinit() void {
+	mus_DaisyCrave    .free();
+	mus_GrainiacManiac.free();
+	mus_RazeTheGroof  .free();
+}
 
+
+pub fn sounds_init() !void {
+	for (sounds_paths, 0..) |sound_path, i| {
+		errdefer sounds_deinit_until(i);
+
+		const snd_ptr, const path = sound_path;
+		snd_ptr.* = try io.sound.Sound.alloc_from_file(path);
+	}
+}
+fn sounds_deinit_until(end: usize) void {
+	for (sounds_paths[0..end]) |sound_path| {
+		const snd_ptr, _ = sound_path;
+		snd_ptr.*.free();
+	}
+}
+pub fn sounds_deinit() void {
+	sounds_deinit_until(sounds_paths.len);
+}
+
+
+pub fn images_init() !void {
+	for (images_paths, 0..) |image_path, i| {
+		errdefer images_deinit_until(i);
 		const img_ptr, const path = image_path;
 		img_ptr.* = try io.gui.Image.alloc_from_file(path);
 	}
 }
-
-fn deinit_until(end: usize) void {
-	for (images_paths, 0..) |image_path, i| {
-		if (i == end) break;
-
+fn images_deinit_until(end: usize) void {
+	for (images_paths[0..end]) |image_path| {
 		const img_ptr, _ = image_path;
 		img_ptr.*.free();
 	}
 }
-
-pub fn deinit() void {
-	@call(.always_inline, &deinit_until, .{ images_paths.len });
+pub fn images_deinit() void {
+	images_deinit_until(images_paths.len);
 }

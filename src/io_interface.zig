@@ -59,8 +59,13 @@ pub const music = struct {
 	pub fn init() LibraryError!void {}
 	pub fn deinit() void {}
 
+	pub const Music = struct {
+		pub fn alloc_from_file(path: [:0]const u8) LibraryError!Music { _ = path; return .{}; }
+		pub fn free(mus: Music) void { _ = mus; }
+	};
+
 	pub const PlayRepetition = enum { once, loop };
-	pub fn play_file(path: [:0]const u8, repetition: PlayRepetition) LibraryError!void { _ = path; _ = repetition; }
+	pub fn play(mus: Music, repetition: PlayRepetition) LibraryError!void { _ = mus; _ = repetition; }
 	pub fn stop() void {}
 };
 
@@ -71,7 +76,7 @@ pub const sound = struct {
 	pub const Sound = struct {
 		pub fn alloc_from_file(path: [:0]const u8) LibraryError!Sound { _ = path; return .{}; }
 		pub fn free(snd: Sound) void { _ = snd; }
-
-		pub fn play(snd: Sound) void { _ = snd; }
 	};
+
+	pub fn play(snd: Sound) LibraryError!void { _ = snd; }
 };

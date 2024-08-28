@@ -1,5 +1,7 @@
 
 const std = @import("std");
+const io = @import("io.zig");
+const assets = @import("assets.zig");
 
 // "universal constants":
 
@@ -403,7 +405,7 @@ pub fn forward(duration: f32, field: *Field, progress: *Progress) !void {
 						.rose_white => {
 							//TODO: if (no monster in sight) continue;
 
-							//TODO: sound play light bullet shot
+							io.sound.play(assets.snd_shot_emitted) catch {};
 
 							//TODO: insert it in the appropriate position (L-to-R order)
 
@@ -440,10 +442,14 @@ pub fn forward(duration: f32, field: *Field, progress: *Progress) !void {
 				(monster.health > 0)
 			) {
 				if (monster.take_hit(bullet.kind)) {
+					io.sound.play(assets.snd_shot_hit) catch {};
 					bullet_hit = true;
+
 					if (monster.health <= 0) {
+						io.sound.play(assets.snd_monster_dead) catch {};
 						_ = field.monsters.orderedRemove(monster_index);
 					}
+
 					break;
 				}
 			}
@@ -464,11 +470,11 @@ pub fn forward(duration: f32, field: *Field, progress: *Progress) !void {
 				if (monster.delay >= 0.0) {
 					monster.delay -= duration;
 					if (monster.delay <= 0.0) {
-						//TODO: sound play eating
+						io.sound.play(assets.snd_flower_attacked) catch {};
 
 						flower.health -|= monster_damage;
 						if (flower.health <= 0) {
-							//TODO: sound play eaten
+							io.sound.play(assets.snd_monster_ate) catch {};
 
 							field.flowers[monster.row][@intCast(col)] = null;
 						}
@@ -482,6 +488,7 @@ pub fn forward(duration: f32, field: *Field, progress: *Progress) !void {
 		if (!flower_hit) {
 			monster.x -= monster.kind.get_speed() * duration;
 			if (monster.x < 0.0) {
+				io.sound.play(assets.snd_game_defeat) catch {};
 				progress.state = .defeat;
 			}
 		}
@@ -528,6 +535,7 @@ pub fn forward(duration: f32, field: *Field, progress: *Progress) !void {
 				const count_beg = (duration_beg - wave.timestamp_beg) / monster_freq;
 				const count_end = (duration_end - wave.timestamp_beg) / monster_freq;
 				for (@intFromFloat(count_beg)..@intFromFloat(count_end)) |_| {
+					io.sound.play(assets.snd_monster_spawned) catch {};
 					const row = progress.rand_byte(field.row_beg, field.row_end - 1);
 					try field.monsters.append(Monster.init(monster_kind, field.visible_max.x, row));
 				}
@@ -537,7 +545,10 @@ pub fn forward(duration: f32, field: *Field, progress: *Progress) !void {
 
 	if (field.monsters.items.len == 0 and progress.duration > waves_end) {
 		switch (progress.state) {
-			.fighting => progress.state = .victory,
+			.fighting => {
+				io.sound.play(assets.snd_game_victory) catch {};
+				progress.state = .victory;
+			},
 			.victory => {},
 			.defeat => {},
 		}

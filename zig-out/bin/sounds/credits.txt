@@ -1,0 +1,16 @@
+
+All the sounds are licensed under CC0.
+
+gui / button                    https://opengameart.org/content/8-bit-sound-effect-pack-vol-001 / Hit 6
+gui / selected_seed             https://opengameart.org/content/30-weird-cc0-sfx / weird_02
+collectibles / water            https://opengameart.org/content/40-cc0-water-splash-slime-sfx / bubble_02
+flowers / planted               https://opengameart.org/content/20-rustles-dry-leaves / rustle09
+flowers / attacked              https://opengameart.org/content/20-rustles-dry-leaves / rustle10
+flowers / digged                https://opengameart.org/content/20-rustles-dry-leaves / rustle15
+shots / hit                     https://opengameart.org/content/3-pop-sounds / pop1
+shots / emitted                 https://opengameart.org/content/3-pop-sounds / pop2
+monsters / spawned              https://opengameart.org/content/zombie-sound
+monsters / ate                  https://opengameart.org/content/80-cc0-creture-sfx-2 / monster_13
+monsters / died                 https://opengameart.org/content/25-cc0-mud-sfx / mud_25
+game / victory                  https://opengameart.org/content/level-up-power-up-coin-get-13-sounds / Rise05
+game / defeat                   https://opengameart.org/content/zombie-boss-sound

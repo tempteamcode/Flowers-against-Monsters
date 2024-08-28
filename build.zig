@@ -9,18 +9,19 @@ const libraries = struct {
 		};
 		pub const music = enum {
 			none,
+			BASS,
 			BASSMOD,
 		};
 		pub const sound = enum {
 			none,
-			SDL,
+			BASS,
 		};
 	};
 
 	pub const default = struct {
 		pub const gui   = libraries.supported.gui.SDL_with_LodePNG;
-		pub const music = libraries.supported.music.BASSMOD;
-		pub const sound = libraries.supported.sound.SDL;
+		pub const music = libraries.supported.music.BASS;
+		pub const sound = libraries.supported.sound.BASS;
 	};
 };
 
@@ -41,20 +42,22 @@ pub fn build(b: *std.Build) !void {
 
 	var use_lib_sdl = false;
 	var use_lib_lodepng = false;
+	var use_lib_bass = false;
 	var use_lib_bassmod = false;
 	switch (lib_gui) {
 		.SDL_with_LodePNG => { use_lib_sdl = true; use_lib_lodepng = true; },
 	}
 	switch (lib_music) {
 		.none             => {},
+		.BASS             => use_lib_bass = true,
 		.BASSMOD          => use_lib_bassmod = true,
 	}
 	switch (lib_sound) {
 		.none             => {},
-		.SDL              => use_lib_sdl = true,
+		.BASS             => use_lib_bass = true,
 	}
 
-	const use_libc = use_lib_sdl or use_lib_lodepng or use_lib_bassmod;
+	const use_libc = use_lib_sdl or use_lib_lodepng or use_lib_bass or use_lib_bassmod;
 
 
 	// restrict the target to targets supported by the libraries used
@@ -63,7 +66,7 @@ pub fn build(b: *std.Build) !void {
 		var os = target_std.result.os.tag;
 		var arch = target_std.result.cpu.arch;
 
-		if (use_lib_sdl) {
+		if (use_lib_sdl or use_lib_bass) {
 			os   = util.enumRestrict(os  , [_]@TypeOf(os  ) { .windows, .linux });
 			arch = util.enumRestrict(arch, [_]@TypeOf(arch) { .x86, .x86_64 });
 		}
@@ -147,6 +150,42 @@ pub fn build(b: *std.Build) !void {
 	if (use_lib_lodepng) {
 		exe.addCSourceFile(.{ .file = b.path("libraries/lodepng-87032dd/lodepng-87032dd9c379892e08bba71c647bdaca793aee3c/lodepng.c") }); // statically linked
 		exe.addIncludePath(b.path("libraries/lodepng-87032dd/lodepng-87032dd9c379892e08bba71c647bdaca793aee3c"));
+	}
+	if (use_lib_bass) {
+		exe.linkSystemLibrary("BASS"); // dynamically linked
+		switch (target_os) {
+			.windows => {
+				exe.addIncludePath(b.path("libraries/bass24/c"));
+				switch (target_arch) {
+					.x86 => {
+						exe.addLibraryPath(b.path("libraries/bass24"));
+						exe.addLibraryPath(b.path("libraries/bass24/c"));
+						b.installFile("libraries/bass24/bass.dll", "bin/bass.dll");
+					},
+					.x86_64 => {
+						exe.addLibraryPath(b.path("libraries/bass24/x64"));
+						exe.addLibraryPath(b.path("libraries/bass24/c/x64"));
+						b.installFile("libraries/bass24/x64/bass.dll", "bin/bass.dll");
+					},
+					else => return error.UnsupportedCpuArchitectureForLibraryBASS,
+				}
+			},
+			.linux => {
+				exe.addIncludePath(b.path("libraries/bass24-linux"));
+				switch (target_arch) {
+					.x86 => {
+						exe.addLibraryPath(b.path("libraries/bass24-linux/libs/x86"));
+						b.installFile("libraries/bass24-linux/libs/x86/libbass.so", "bin/libbass.so");
+					},
+					.x86_64 => {
+						exe.addLibraryPath(b.path("libraries/bass24-linux/libs/x86_64"));
+						b.installFile("libraries/bass24-linux/libs/x86_64/libbass.so", "bin/libbass.so");
+					},
+					else => return error.UnsupportedCpuArchitectureForLibraryBASS,
+				}
+			},
+			else => return error.UnsupportedOsForLibraryBASS,
+		}
 	}
 	if (use_lib_bassmod) {
 		exe.linkSystemLibrary("BASSMOD"); // dynamically linked

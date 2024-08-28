@@ -12,12 +12,13 @@ pub const gui = switch (build_config.lib_gui) {
 
 pub const music = switch (build_config.lib_music) {
 	.none             => interface.music,
+	.BASS             => @import("wrapper_bass.zig").music,
 	.BASSMOD          => @import("wrapper_bassmod.zig").music,
 };
 
 pub const sound = switch (build_config.lib_sound) {
 	.none             => interface.sound,
-	.SDL              => @import("wrapper_sdl.zig").sound,
+	.BASS             => @import("wrapper_bass.zig").sound,
 };
 
 

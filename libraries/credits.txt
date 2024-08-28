@@ -1,11 +1,4 @@
 
-LodePNG                                                         https://github.com/lvandeve/lodepng
-- lodepng-87032dd.zip                   (all)                   https://github.com/lvandeve/lodepng/archive/87032dd9c379892e08bba71c647bdaca793aee3c.zip
-
-BASSMOD                                                         https://www.un4seen.com/bassmod.html
-- bassmod20.zip                         (x86-windows)           https://www.un4seen.com/download.php?bassmod20
-- bassmod20-linux.zip                   (x86-linux)             https://www.un4seen.com/download.php?bassmod20-linux
-
 SDL                                                             https://github.com/libsdl-org/SDL-1.2/releases/tag/release-1.2.15
 - SDL-1.2.15-win32.zip                  (x86-windows)           https://www.libsdl.org/release/SDL-1.2.15-win32.zip
 - SDL-devel-1.2.15-mingw32.tar.gz       (x86-windows)           https://www.libsdl.org/release/SDL-devel-1.2.15-mingw32.tar.gz
@@ -16,3 +9,14 @@ SDL                                                             https://github.c
 - SDL-devel-1.2.15-1.i386.rpm           (x86-linux)             https://www.libsdl.org/release/SDL-devel-1.2.15-1.i386.rpm
 - SDL-1.2.15-1.x86_64.rpm               (x86_64-linux)          https://www.libsdl.org/release/SDL-1.2.15-1.x86_64.rpm
 - SDL-devel-1.2.15-1.x86_64.rpm         (x86_64-linux)          https://www.libsdl.org/release/SDL-devel-1.2.15-1.x86_64.rpm
+
+LodePNG                                                         https://github.com/lvandeve/lodepng
+- lodepng-87032dd.zip                   (all)                   https://github.com/lvandeve/lodepng/archive/87032dd9c379892e08bba71c647bdaca793aee3c.zip
+
+BASS                                                            https://www.un4seen.com/bass.html
+- bass24.zip                            (all-windows)           https://www.un4seen.com/files/bass24.zip
+- bass24-linux.zip                      (all-linux)             https://www.un4seen.com/files/bass24-linux.zip
+
+BASSMOD                                                         https://www.un4seen.com/bassmod.html
+- bassmod20.zip                         (x86-windows)           https://www.un4seen.com/download.php?bassmod20
+- bassmod20-linux.zip                   (x86-linux)             https://www.un4seen.com/download.php?bassmod20-linux

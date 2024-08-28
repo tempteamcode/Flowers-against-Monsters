@@ -24,13 +24,17 @@ pub fn main() !void {
 	const window = try io.gui.Window.init(640, 480, "Flowers against Monsters");
 	defer window.deinit();
 
-	try io.music.play_file("musics/Daisy Crave.it", .loop);
+	try assets.musics_init();
+	defer assets.musics_deinit();
+
+	try io.music.play(assets.mus_DaisyCrave, .loop);
 	defer io.music.stop();
 
 	if (try screen_intro(window) == .quit) return;
 
 	const title_screen_outcome = try screen_title(window);
-	defer assets.deinit(); // the title screen inits the assets
+	defer assets.sounds_deinit(); // the title screen inits the sounds
+	defer assets.images_deinit(); // the title screen inits the images
 	if (title_screen_outcome == .quit) return;
 
 	try screen_home.screen_home(window);
@@ -76,8 +80,12 @@ fn screen_title(window: io.gui.Window) !screens.ScreenOutcome {
 	const btn_hovered = try io.gui.Image.alloc_from_file("images/title/button start hovered.png");
 	defer btn_hovered.free();
 
-	try assets.init(); // the title screen is also the assets loading screen
-	errdefer comptime unreachable; //assets.deinit();
+	// the title screen is also the assets loading screen
+	// (except for the musics which are loaded even before)
+	try assets.sounds_init();
+	errdefer assets.sounds_deinit();
+	try assets.images_init();
+	errdefer assets.images_deinit();
 
 	const btn_coords = io.gui.Coords {
 		.x = @divFloor(window.get_width(), 2),
@@ -106,7 +114,10 @@ fn screen_title(window: io.gui.Window) !screens.ScreenOutcome {
 					was_hovered = is_hovering;
 				}
 
-				if (is_hovering and event == .mousepress) return .done;
+				if (is_hovering and event == .mousepress) {
+					try io.sound.play(assets.snd_button);
+					return .done;
+				}
 			},
 		}
 	}
