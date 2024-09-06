@@ -204,6 +204,7 @@ pub const gui = struct {
 	}
 	pub fn timer_clear_events() void {
 		var ignored: [10]c.SDL_Event = undefined;
+		c.SDL_PumpEvents();
 		while (true) {
 			const count = c.SDL_PeepEvents(&ignored, ignored.len, c.SDL_GETEVENT, c.SDL_USEREVENT);
 			assert(count != -1);
