@@ -6,8 +6,9 @@ const build_config = @import("build_config");
 
 
 pub const gui = switch (build_config.lib_gui) {
-//	.none             => interface.gui,
-	.SDL_with_LodePNG => @import("wrapper_sdl.zig").gui,
+//	.none              => interface.gui,
+	.SDL1_with_LodePNG => @import("wrapper_sdl1.zig").gui,
+	.SDL3 => @import("wrapper_sdl3.zig").gui,
 };
 
 pub const music = switch (build_config.lib_music) {

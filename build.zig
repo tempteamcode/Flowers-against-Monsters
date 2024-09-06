@@ -5,7 +5,8 @@ const util = @import("src/util.zig");
 const libraries = struct {
 	pub const supported = struct {
 		pub const gui = enum {
-			SDL_with_LodePNG,
+			SDL1_with_LodePNG,
+			SDL3,
 		};
 		pub const music = enum {
 			none,
@@ -19,7 +20,7 @@ const libraries = struct {
 	};
 
 	pub const default = struct {
-		pub const gui   = libraries.supported.gui.SDL_with_LodePNG;
+		pub const gui   = libraries.supported.gui.SDL1_with_LodePNG;
 		pub const music = libraries.supported.music.BASS;
 		pub const sound = libraries.supported.sound.BASS;
 	};
@@ -27,7 +28,7 @@ const libraries = struct {
 
 pub fn build(b: *std.Build) !void {
 	const target_std = b.standardTargetOptions(.{});
-	const optimize = .ReleaseSafe; //b.standardOptimizeOption(.{});
+	const optimize = b.standardOptimizeOption(.{});
 
 
 	// figure out which libraries to use
@@ -40,12 +41,14 @@ pub fn build(b: *std.Build) !void {
 	const lib_music = if (b.option([]const u8, "libmusic", libs_music)) |name| try util.enumFromName(libraries.supported.music, name, error.UnknownMusicLibrary) else libraries.default.music;
 	const lib_sound = if (b.option([]const u8, "libsound", libs_sound)) |name| try util.enumFromName(libraries.supported.sound, name, error.UnknownSoundLibrary) else libraries.default.sound;
 
-	var use_lib_sdl = false;
+	var use_lib_sdl1 = false;
+	var use_lib_sdl3 = false;
 	var use_lib_lodepng = false;
 	var use_lib_bass = false;
 	var use_lib_bassmod = false;
 	switch (lib_gui) {
-		.SDL_with_LodePNG => { use_lib_sdl = true; use_lib_lodepng = true; },
+		.SDL1_with_LodePNG => { use_lib_sdl1 = true; use_lib_lodepng = true; },
+		.SDL3 => use_lib_sdl3 = true,
 	}
 	switch (lib_music) {
 		.none             => {},
@@ -57,7 +60,7 @@ pub fn build(b: *std.Build) !void {
 		.BASS             => use_lib_bass = true,
 	}
 
-	const use_libc = use_lib_sdl or use_lib_lodepng or use_lib_bass or use_lib_bassmod;
+	const use_libc = use_lib_sdl1 or use_lib_sdl3 or use_lib_lodepng or use_lib_bass or use_lib_bassmod;
 
 
 	// restrict the target to targets supported by the libraries used
@@ -66,7 +69,7 @@ pub fn build(b: *std.Build) !void {
 		var os = target_std.result.os.tag;
 		var arch = target_std.result.cpu.arch;
 
-		if (use_lib_sdl or use_lib_bass) {
+		if (use_lib_sdl1 or use_lib_sdl3 or use_lib_bass) {
 			os   = util.enumRestrict(os  , [_]@TypeOf(os  ) { .windows, .linux });
 			arch = util.enumRestrict(arch, [_]@TypeOf(arch) { .x86, .x86_64 });
 		}
@@ -113,7 +116,7 @@ pub fn build(b: *std.Build) !void {
 	if (use_libc) {
 		exe.linkLibC();
 	}
-	if (use_lib_sdl) {
+	if (use_lib_sdl1) {
 		exe.linkSystemLibrary("SDL"); // dynamically linked
 		switch (target_arch) {
 			.x86 => switch (target_os) {
@@ -145,6 +148,19 @@ pub fn build(b: *std.Build) !void {
 				else => return error.UnsupportedOsForLibrarySDL,
 			},
 			else => return error.UnsupportedCpuArchitectureForLibrarySDL,
+		}
+	}
+	if (use_lib_sdl3) {
+		exe.linkSystemLibrary("SDL3");
+		exe.linkSystemLibrary("SDL3_image");
+		if (target_arch == .x86_64 and target_os == .linux) {
+			// Temporary locations for SDL3.
+			exe.addLibraryPath(b.path("../"));
+			exe.addIncludePath(b.path("sdl3-include/"));
+			// and for SDL3_Image
+			exe.addIncludePath(b.path("sdl3-image-include/"));
+		} else {
+			return error.UnsupportedTargetForLibrarySdl3;
 		}
 	}
 	if (use_lib_lodepng) {
