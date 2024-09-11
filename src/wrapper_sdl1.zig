@@ -182,6 +182,11 @@ pub const gui = struct {
 			assert(c.SDL_BlitSurface(image._surface, &src_rect, window._screen, &dst_rect) == 0);
 		}
 
+		pub fn cover_with_rectangle(window: Window, coords: Coords, w: i32, h: i32) void {
+			 _ = window; _ = coords; _ = w; _ = h;
+			// not supported. I don't know if it's possible in SDL1. Probably.
+		}
+
 		pub fn refresh(window: Window) void {
 			assert(c.SDL_Flip(window._screen) == 0);
 		}

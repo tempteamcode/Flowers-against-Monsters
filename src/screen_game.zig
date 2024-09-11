@@ -28,6 +28,8 @@ const Status = struct {
 		.{ .x = 65 * 8, .y = 430 },
 		.{ .x = 65 * 9, .y = 430 },
 	};
+	const seed_width:  i32 = 32;
+	const seed_height: i32 = 32;
 
 	const monster_cell_offset_y = 0.8;
 	const flower_cell_offset_y = -0.1;
@@ -178,7 +180,17 @@ fn screen_game_refresh(allocator: std.mem.Allocator, window: io.gui.Window, stat
 				else if (i == status.mouse.seeds_hovered ) assets.img_game_seeds_hovered
 				else                                       assets.img_game_seeds, coords_center
 			);
+			// ^ wtf is this code format.
 			window.blit_image(image, coords_center);
+			
+			const refill: f32 = seed.delay;
+			if (refill > 0.0) {
+				const cover_height: i32 = @intFromFloat(@ceil(refill * @as(f32, Status.seed_height)));
+				const cover_x = coords_center.x - @divFloor(Status.seed_width, 2);
+				const cover_y = coords_center.y + @divFloor(Status.seed_height, 2) - cover_height;
+				window.cover_with_rectangle(.{.x = cover_x, .y = cover_y}, Status.seed_width, cover_height);
+			}
+
 			if (status.progress.water != null) {
 				var coords_water = coords_center; coords_water.x += 10; coords_water.y += 18;
 				window.blit_image(assets.img_game_water_icon, coords_water); coords_water.y += 2;

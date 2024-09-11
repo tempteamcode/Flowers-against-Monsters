@@ -1,4 +1,5 @@
 //! Provides a zig interface for the SDL 3 graphic library.
+//! TODO replace SDL_MapRGBA with SDL_MapSurfaceRGBA it's better
 
 const std = @import("std");
 
@@ -135,17 +136,29 @@ pub const gui = struct {
 
 	pub const Window = struct {
 		_window: *c.SDL_Window,
+		/// Used as a pixel source, because SDL_FillSurfaceRect() does not take the alpha into account,
+		/// but SDL_BlitSurface() does.
+		_mask_surface: *c.SDL_Surface,
 		// _render: ?*c.SDL_Renderer = null,
 
 		pub fn init(width: u31, height: u31, title: [:0]const u8) LibraryError!Window {
 			if (!initialized) try gui.init();
 
 			// flag c.SDL_WINDOW_RESIZABLE exists. But the program needs to be adapted.
-			const win = c.SDL_CreateWindow(title, width, height, 0) orelse {
+			const win = c.SDL_CreateWindow(title, width, height, c.SDL_WINDOW_RESIZABLE) orelse {
 				printError("SDL_CreateWindow");
 				return error.Library;
 			};
 			errdefer c.SDL_DestroyWindow(win);
+
+			const mask_surface = c.SDL_CreateSurface(1, 1, c.SDL_PIXELFORMAT_ARGB8888);
+			if (mask_surface == null) {
+				printError("SDL_CreateSurface");
+				return error.Library;
+			}
+			assert(c.SDL_ClearSurface(mask_surface, 0.0, 0.0, 0.0, 0.375));
+			errdefer c.SDL_DestroySurface(mask_surface);
+			assert(c.SDL_SetSurfaceBlendMode(mask_surface, c.SDL_BLENDMODE_BLEND));
 
 			// const rdr = c.SDL_CreateRenderer(win, null);
 			// errdefer c.SDL_DestroyRenderer(rdr);
@@ -154,10 +167,11 @@ pub const gui = struct {
 			// 	return error.Library;
 			// }
 
-			return .{ ._window = win } ; // , ._render = rdr };
+			return .{ ._window = win, ._mask_surface = mask_surface } ; // , ._render = rdr };
 		}
 		pub fn deinit(window: Window) void {
 			// c.SDL_DestroyRenderer(window._render);
+			c.SDL_DestroySurface(window._mask_surface);
 			c.SDL_DestroyWindow(window._window);
 			gui.deinit();
 		}
@@ -183,10 +197,10 @@ pub const gui = struct {
 			assert(c.SDL_FillSurfaceRect(surface, null, pixel_value));
 		}
 		pub fn fill_image(window: Window, image: Image) void {
-			std.debug.assert(window.get_width() == image.get_width());
-			std.debug.assert(window.get_height() == image.get_height());
+			// std.debug.assert(window.get_width() == image.get_width());
+			// std.debug.assert(window.get_height() == image.get_height());
 			const window_surface = window.getSurfaceOrPanic();
-			assert(c.SDL_BlitSurface(image.surface, null, window_surface, null));
+			assert(c.SDL_BlitSurfaceScaled(image.surface, null, window_surface, null, c.SDL_SCALEMODE_NEAREST));
 		}
 		pub fn blit_image(window: Window, image: Image, coords: Coords) void {
 			const corner_x = coords.x - @divFloor(image.get_width(), 2);
@@ -204,6 +218,11 @@ pub const gui = struct {
 			if (dst_rect.x != corner_x or dst_rect.y != corner_y) return; // the coordinates didn't fit, so it's outside the window
 			const window_surface = window.getSurfaceOrPanic();
 			assert(c.SDL_BlitSurface(image.surface, &src_rect, window_surface, &dst_rect));
+		}
+		pub fn cover_with_rectangle(window: Window, coords: Coords, w: i32, h: i32) void {
+			const rectangle = c.SDL_Rect{.x=coords.x, .y=coords.y, .w=w, .h=h};
+			const surface = window.getSurfaceOrPanic();
+			assert(c.SDL_BlitSurfaceScaled(window._mask_surface, null, surface, &rectangle, c.SDL_SCALEMODE_NEAREST));
 		}
 
 		pub fn refresh(window: Window) void {

@@ -29,6 +29,7 @@ pub const gui = struct {
 		pub fn fill_image(window: Window, image: Image) void { _ = window; _ = image; }
 		pub fn blit_image(window: Window, image: Image, coords: Coords) void { _ = window; _ = image; _ = coords; }
 		pub fn blit_image_part(window: Window, image: Image, coords: Coords, coords_min: Coords, coords_max: Coords) void { _ = window; _ = image; _ = coords; _ = coords_min; _ = coords_max; }
+		pub fn cover_with_rectangle(window: Window, coords: Coords, w: i32, h: i32) void { _ = window; _ = coords; _ = w; _ = h; }
 
 		pub fn refresh(window: Window) void { _ = window; }
 	};
