@@ -117,7 +117,10 @@ pub const FlowerKind = enum {
 		};
 	}
 
+	pub fn get_refill_delay(_: FlowerKind) f32 {
 	//TODO: add get_seed_delay
+		return 1.0;
+	}
 };
 
 pub const FlowerState = enum {
@@ -375,8 +378,7 @@ pub fn put_seeds(seed: *Seed, coords: Coords, field: *Field, progress: *Progress
 
 	field.flowers[row][col] = Flower.init(seed.kind);
 
-	//TODO: set refill delay and make it visual
-	//seed.delay = seed.kind.get_refill_delay();
+	seed.delay = seed.kind.get_refill_delay();
 
 	return .put;
 }
@@ -551,6 +553,14 @@ pub fn forward(duration: f32, field: *Field, progress: *Progress) !void {
 			},
 			.victory => {},
 			.defeat => {},
+		}
+	}
+
+	for (0..progress.seeds.len) |i| {
+		if (progress.seeds[i]) |_| {
+			if (progress.seeds[i].?.delay > 0.0) {
+				progress.seeds[i].?.delay -= duration;
+			}
 		}
 	}
 }
