@@ -25,7 +25,7 @@ fn assert(expected: bool) void {
 
 fn printError(funcName: []const u8) void {
 	const message = c.SDL_GetError();
-	std.debug.print("{s}: {s}.\n", .{funcName, message});
+	std.debug.print("{s}(): {s}.\n", .{funcName, message});
 }
 
 fn printDevInfo() void {
@@ -48,7 +48,7 @@ fn printDevInfo() void {
 	const simd_align = c.SDL_GetSIMDAlignment();
 	const ram = c.SDL_GetSystemRAM();
 	std.debug.print(
-		"Platform: {s}\nCPU: {} avalaible, L1 cache line: {}b, SMID alignement: {}b\nRAM: {}MiB\n",
+		"Platform: {s}\nCPU: {} avalaible\nL1 cache line: {}b\nSMID alignement: {}b\nRAM: {}MiB\n",
 		.{platform, cpu_count, cache_line_size, simd_align, ram}
 	);
 }
@@ -228,12 +228,16 @@ pub const gui = struct {
 			printError("SDL_AddTimer");
 			return error.Library;
 		}
-		timer_id = ret;
+		if (repetition == .loop) {
+			timer_id = ret;
+		}
 	}
 	pub fn timer_stop() void {
 		if (timer_id) |id| {
-			// will fail to remove one-shot timers, ignore return value.
-			_ = c.SDL_RemoveTimer(id);
+			const ret = c.SDL_RemoveTimer(id);
+			if (!ret) {
+				printError("SDL_RemoveTimer");
+			}
 			timer_id = null;
 		}
 	}
