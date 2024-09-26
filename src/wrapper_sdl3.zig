@@ -29,7 +29,7 @@ fn printError(funcName: []const u8) void {
 }
 
 fn printDevInfo() void {
-	// Can be called even if SDL wasn't initialized.
+	// Version functions be called even if SDL wasn't initialized.
 	const version = c.SDL_GetVersion();
 	const major = c.SDL_VERSIONNUM_MAJOR(version);
 	const minor = c.SDL_VERSIONNUM_MINOR(version);
@@ -66,6 +66,9 @@ export fn io_gui_timer_callback_loop(_: ?*anyopaque, _: c.SDL_TimerID, interval:
 	return interval;
 }
 
+// oups global variable for constructing images with the renderer.
+var renderer: ?*c.SDL_Renderer = null;
+
 pub const gui = struct {
 
 	var timer_id: ?c.SDL_TimerID = null;
@@ -97,35 +100,45 @@ pub const gui = struct {
 	pub const Coords = io_interface.gui.Coords;
 
 	pub const Image = struct {
-		surface: *c.SDL_Surface,
+		_texture: *c.SDL_Texture,
+		_w : u31,
+		_h : u31,
 
 		pub fn alloc_from_file(path: [:0]const u8) LibraryError!Image {
-			const surface = c.IMG_Load(path);
-			if (surface) |ptr| {
-				return .{ .surface = ptr };
-			} else {
+			const surface = c.IMG_Load(path) orelse {
 				printError("IMG_Load");
 				return error.Library;
-			}
+			};
+			defer c.SDL_DestroySurface(surface);
+			const texture = c.SDL_CreateTextureFromSurface(renderer.?, surface) orelse {
+				printError("SDL_CreateTextureFromSurface");
+				return error.Library;
+			};
+			const width: u31 = @intCast(surface.*.w);
+			const height: u31 = @intCast(surface.*.h);
+			return .{ ._texture = texture, ._w = width, ._h = height};
 		}
 		pub fn free(image: Image) void {
-			c.SDL_DestroySurface(image.surface);
+			c.SDL_DestroyTexture(image._texture);
 		}
 
 		pub fn get_width(image: Image) u31 {
-			return @intCast(image.surface.*.w);
+			return image._w;
 		}
 		pub fn get_height(image: Image) u31 {
-			return @intCast(image.surface.*.h);
+			return image._h;
 		}
 		pub fn get_pixel(image: Image, coords: Coords) Color {
-			const surface = image.surface;
-			if (0 <= coords.x and coords.x < surface.w) {
-				if (0 <= coords.y and coords.y < surface.h) {
-					var color: Color = undefined;
-					assert(c.SDL_ReadSurfacePixel(surface, @intCast(coords.x), @intCast(coords.y), &color.r, &color.g, &color.b, &color.a));
-					color.a = 255 - color.a; // SDL uses the opposite alpha convention
-					return color;
+			// const surface = image.surface;
+			if (0 <= coords.x and coords.x < image._w) {
+				if (0 <= coords.y and coords.y < image._h) {
+					// var color: Color = undefined;
+					// assert(c.SDL_ReadSurfacePixel(surface, @intCast(coords.x), @intCast(coords.y), &color.r, &color.g, &color.b, &color.a));
+					// color.a = 255 - color.a; // SDL uses the opposite alpha convention
+					// return color;
+
+					// oups, how to read the pixel values on a texture, knowing it could cost intensive GPU/CPU ?
+					return .{ .r = 0, .g = 0, .b = 0, .a = 0 };
 				}
 			}
 
@@ -135,79 +148,101 @@ pub const gui = struct {
 
 	pub const Window = struct {
 		_window: *c.SDL_Window,
-		// _render: ?*c.SDL_Renderer = null,
+		_render: *c.SDL_Renderer,
+		_logical_width: u31,
+		_logical_height: u31,
 
 		pub fn init(width: u31, height: u31, title: [:0]const u8) LibraryError!Window {
 			if (!initialized) try gui.init();
 
 			// flag c.SDL_WINDOW_RESIZABLE exists. But the program needs to be adapted.
-			const win = c.SDL_CreateWindow(title, width, height, 0) orelse {
+			const win = c.SDL_CreateWindow(title, width, height, c.SDL_WINDOW_RESIZABLE) orelse {
 				printError("SDL_CreateWindow");
 				return error.Library;
 			};
 			errdefer c.SDL_DestroyWindow(win);
 
-			// const rdr = c.SDL_CreateRenderer(win, null);
-			// errdefer c.SDL_DestroyRenderer(rdr);
-			// if (win == null) {
-			// 	printError("SDL_CreateRenderer");
-			// 	return error.Library;
-			// }
+			const rdr = c.SDL_CreateRenderer(win, null) orelse {
+				printError("SDL_CreateRenderer");
+				return error.Library;
+			};
+			errdefer c.SDL_DestroyRenderer(rdr);
+			std.debug.print("SDL chose renderer '{s}'.\n", .{c.SDL_GetRendererName(rdr)});
 
-			return .{ ._window = win } ; // , ._render = rdr };
+			const ok = c.SDL_SetRenderLogicalPresentation(rdr, 640, 480, c.SDL_LOGICAL_PRESENTATION_STRETCH, c.SDL_SCALEMODE_LINEAR); // this function ain't up-to-date.
+			if (!ok) {
+				printError("SDL_SetRenderLogicalPresentation");
+				return error.Library;
+			}
+
+			renderer = rdr; // oups global variable for constructing images with the renderer.
+			return .{ ._window = win, ._render = rdr, ._logical_width = 640, ._logical_height = 480 };
 		}
 		pub fn deinit(window: Window) void {
-			// c.SDL_DestroyRenderer(window._render);
+			c.SDL_DestroyRenderer(window._render);
 			c.SDL_DestroyWindow(window._window);
 			gui.deinit();
 		}
 
-		fn getSurfaceOrPanic(window: Window) *c.SDL_Surface {
-			const surface = c.SDL_GetWindowSurface(window._window);
-			assert(surface != null);
-			return surface;
+		fn blit_image_impl(window: Window, image: Image, src_rect: c.SDL_FRect, dst_coords: Coords) void {
+			const corner_x: f32 = @as(f32, @floatFromInt(dst_coords.x)) - src_rect.w / 2.0;
+			const corner_y: f32 = @as(f32, @floatFromInt(dst_coords.y)) - src_rect.h / 2.0;
+			const dst_rect: c.SDL_FRect = .{ .x = corner_x, .y = corner_y, .w = src_rect.w, .h = src_rect.h };
+
+			const ret = c.SDL_RenderTexture(window._render, image._texture, &src_rect, &dst_rect);
+			if (!ret) {
+				printError("SDL_RenderTexture");
+				std.process.abort();
+			}
 		}
 
 		pub fn get_width(window: Window) u31 {
-			return @intCast(c.SDL_GetWindowSurface(window._window).*.w);
+			return window._logical_width;
 		}
 		pub fn get_height(window: Window) u31 {
-			return @intCast(c.SDL_GetWindowSurface(window._window).*.h);
+			return window._logical_height;
 		}
 
 		pub fn fill_color(window: Window, color: Color) void {
-			const surface = window.getSurfaceOrPanic();
-			const format_detail = c.SDL_GetPixelFormatDetails(surface.format);
-			assert(format_detail != null);
-			const pixel_value = c.SDL_MapRGBA(format_detail, null, color.r, color.g, color.b, 255 - color.a);
-			assert(c.SDL_FillSurfaceRect(surface, null, pixel_value));
+			var ret = c.SDL_SetRenderDrawColor(window._render, color.r, color.g, color.b, 255 - color.a);
+			if (!ret) {
+				printError("SDL_SetRenderDrawColor");
+				std.process.abort();
+			}
+			ret = c.SDL_RenderClear(window._render);
+			if (!ret) {
+				printError("SDL_RenderClear");
+				std.process.abort();
+			}
 		}
 		pub fn fill_image(window: Window, image: Image) void {
-			std.debug.assert(window.get_width() == image.get_width());
-			std.debug.assert(window.get_height() == image.get_height());
-			const window_surface = window.getSurfaceOrPanic();
-			assert(c.SDL_BlitSurface(image.surface, null, window_surface, null));
+			const ret = c.SDL_RenderTexture(window._render, image._texture, null, null);
+			if (!ret) {
+				printError("SDL_RenderTexture");
+				std.process.abort();
+			}
 		}
 		pub fn blit_image(window: Window, image: Image, coords: Coords) void {
-			const corner_x = coords.x - @divFloor(image.get_width(), 2);
-			const corner_y = coords.y - @divFloor(image.get_height(), 2);
-			var dst_rect: c.SDL_Rect = .{ .x = @truncate(corner_x), .y = @truncate(corner_y), .w = undefined, .h = undefined };
-			if (dst_rect.x != corner_x or dst_rect.y != corner_y) return; // the coordinates didn't fit, so it's outside the window
-			const window_surface = window.getSurfaceOrPanic();
-			assert(c.SDL_BlitSurface(image.surface, null, window_surface, &dst_rect));
+			const src_rect: c.SDL_FRect = .{
+				.x = 0.0,
+				.y = 0.0,
+				.w = @floatFromInt(image.get_width()),
+				.h = @floatFromInt(image.get_height()),
+			};
+			window.blit_image_impl(image, src_rect, coords);
 		}
 		pub fn blit_image_part(window: Window, image: Image, coords: Coords, coords_min: Coords, coords_max: Coords) void {
-			var src_rect: c.SDL_Rect = .{ .x = @intCast(coords_min.x), .y = @intCast(coords_min.y), .w = @intCast(coords_max.x - coords_min.x), .h = @intCast(coords_max.y - coords_min.y) };
-			const corner_x = coords.x - @divFloor(src_rect.w, 2);
-			const corner_y = coords.y - @divFloor(src_rect.h, 2);
-			var dst_rect: c.SDL_Rect = .{ .x = @truncate(corner_x), .y = @truncate(corner_y), .w = undefined, .h = undefined };
-			if (dst_rect.x != corner_x or dst_rect.y != corner_y) return; // the coordinates didn't fit, so it's outside the window
-			const window_surface = window.getSurfaceOrPanic();
-			assert(c.SDL_BlitSurface(image.surface, &src_rect, window_surface, &dst_rect));
+			const src_rect: c.SDL_FRect = .{
+				.x = @floatFromInt(coords_min.x),
+				.y = @floatFromInt(coords_min.y),
+				.w = @floatFromInt(coords_max.x - coords_min.x),
+				.h = @floatFromInt(coords_max.y - coords_min.y),
+			};
+			window.blit_image_impl(image, src_rect, coords);
 		}
 
 		pub fn refresh(window: Window) void {
-			assert(c.SDL_UpdateWindowSurface(window._window));
+			assert(c.SDL_RenderPresent(window._render));
 		}
 	};
 
@@ -274,7 +309,7 @@ pub const gui = struct {
 	pub fn get_event_or_null() ?Event {
 		var sdl_event: c.SDL_Event = undefined;
 		while (true) {
-			if (c.SDL_PollEvent(&sdl_event)) return null;
+			if ( ! c.SDL_PollEvent(&sdl_event)) return null;
 			if (event_from_SDL(&sdl_event)) |event| return event;
 		}
 	}
@@ -288,10 +323,37 @@ fn event_from_SDL(event: *c.SDL_Event) ?gui.Event {
 		c.SDL_EVENT_QUIT               => .quit,
 		c.SDL_EVENT_USER               => .timer,
 
-		c.SDL_EVENT_MOUSE_MOTION       => .{ .mousemove    = .{ .x = @intFromFloat(event.motion.x), .y = @intFromFloat(event.motion.y) } },
-		c.SDL_EVENT_MOUSE_BUTTON_DOWN  => .{ .mousepress   = .{ .x = @intFromFloat(event.button.x), .y = @intFromFloat(event.button.y) } },
-		c.SDL_EVENT_MOUSE_BUTTON_UP    => .{ .mouserelease = .{ .x = @intFromFloat(event.button.x), .y = @intFromFloat(event.button.y) } },
+		c.SDL_EVENT_MOUSE_MOTION       => {
+			const coords = convert_event_coordinates(event.button.x, event.button.y);
+			return .{ .mousemove = coords };
+		},
+		c.SDL_EVENT_MOUSE_BUTTON_DOWN  =>  {
+			const coords = convert_event_coordinates(event.button.x, event.button.y);
+			return .{ .mousepress = coords };
+		},
+		c.SDL_EVENT_MOUSE_BUTTON_UP    =>  {
+			const coords = convert_event_coordinates(event.button.x, event.button.y);
+			return .{ .mouserelease = coords };
+		},
 
 		else                           => null, // the other events are ignored
 	};
+}
+
+fn convert_event_coordinates(x: f32, y: f32) gui.Coords {
+	// SDL_ConvertEventToRenderCoordinates() would be better but it doesn't work.
+	var new_x: f32 = undefined;
+	var new_y: f32 = undefined;
+	const ret = c.SDL_RenderCoordinatesFromWindow(
+		renderer,
+		x,
+		y,
+		&new_x,
+		&new_y,
+	);
+	if (!ret) {
+		printError("SDL_RenderCoordinatesFromWindow");
+		return gui.Coords {.x = @intFromFloat(x), .y = @intFromFloat(y)};
+	}
+	return gui.Coords {.x = @intFromFloat(new_x), .y = @intFromFloat(new_y)};
 }
