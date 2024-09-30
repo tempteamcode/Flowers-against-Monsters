@@ -43,7 +43,7 @@ fn printDevInfo() void {
 		.{major, minor, micro, revision, img_major, img_minor, img_micro});
 
 	const platform = c.SDL_GetPlatform();
-	const cpu_count = c.SDL_GetCPUCount();
+	const cpu_count = c.SDL_GetNumLogicalCPUCores();
 	const cache_line_size = c.SDL_GetCPUCacheLineSize();
 	const simd_align = c.SDL_GetSIMDAlignment();
 	const ram = c.SDL_GetSystemRAM();
@@ -79,7 +79,7 @@ pub const gui = struct {
 			c.SDL_SetMainReady();
 			set_main_ready = true;
 		}
-		if ( ! c.SDL_Init(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER)) return error.Library;
+		if ( ! c.SDL_Init(c.SDL_INIT_VIDEO)) return error.Library;
 		const img_flags = c.IMG_INIT_PNG;
 		if (c.IMG_Init(img_flags) != img_flags) {
 			printError("IMG_Init");
@@ -169,7 +169,10 @@ pub const gui = struct {
 			errdefer c.SDL_DestroyRenderer(rdr);
 			std.debug.print("SDL chose renderer '{s}'.\n", .{c.SDL_GetRendererName(rdr)});
 
-			const ok = c.SDL_SetRenderLogicalPresentation(rdr, 640, 480, c.SDL_LOGICAL_PRESENTATION_STRETCH, c.SDL_SCALEMODE_LINEAR); // this function ain't up-to-date.
+			// Anoying bug: increasing window's size induces long delay, up to freezing the app when
+			// there are few entities on the field. Relates well to issue
+			// https://github.com/libsdl-org/SDL/issues/9698#issuecomment-2103155124
+			const ok = c.SDL_SetRenderLogicalPresentation(rdr, 640, 480, c.SDL_LOGICAL_PRESENTATION_LETTERBOX);
 			if (!ok) {
 				printError("SDL_SetRenderLogicalPresentation");
 				return error.Library;
@@ -344,13 +347,7 @@ fn convert_event_coordinates(x: f32, y: f32) gui.Coords {
 	// SDL_ConvertEventToRenderCoordinates() would be better but it doesn't work.
 	var new_x: f32 = undefined;
 	var new_y: f32 = undefined;
-	const ret = c.SDL_RenderCoordinatesFromWindow(
-		renderer,
-		x,
-		y,
-		&new_x,
-		&new_y,
-	);
+	const ret = c.SDL_RenderCoordinatesFromWindow(renderer, x, y, &new_x, &new_y);
 	if (!ret) {
 		printError("SDL_RenderCoordinatesFromWindow");
 		return gui.Coords {.x = @intFromFloat(x), .y = @intFromFloat(y)};
