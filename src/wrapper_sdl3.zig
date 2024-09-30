@@ -19,10 +19,6 @@ const c = @cImport({
 var initialized = false;
 var set_main_ready = false;
 
-fn assert(expected: bool) void {
-	if (!expected) @panic("SDL3 does not work.");
-}
-
 fn printError(funcName: []const u8) void {
 	const message = c.SDL_GetError();
 	std.debug.print("{s}(): {s}.\n", .{funcName, message});
@@ -56,13 +52,17 @@ fn printDevInfo() void {
 export fn io_gui_timer_callback_once(_: ?*anyopaque, _: c.SDL_TimerID, interval: u32) u32 {
 	_ = interval;
 	var sdl_event: c.SDL_Event = .{ .type = c.SDL_EVENT_USER };
-	assert(c.SDL_PushEvent(&sdl_event));
+	const ok = c.SDL_PushEvent(&sdl_event);
+	if (!ok)
+		printError("SDL_PushEvent");
 	return 0;
 }
 
 export fn io_gui_timer_callback_loop(_: ?*anyopaque, _: c.SDL_TimerID, interval: u32) u32 {
 	var sdl_event: c.SDL_Event = .{ .type = c.SDL_EVENT_USER };
-	assert(c.SDL_PushEvent(&sdl_event));
+	const ok = c.SDL_PushEvent(&sdl_event);
+	if (!ok)
+		printError("SDL_PushEvent");
 	return interval;
 }
 
@@ -71,7 +71,7 @@ var renderer: ?*c.SDL_Renderer = null;
 
 pub const gui = struct {
 
-	var timer_id: ?c.SDL_TimerID = null;
+	var _timer_id: ?c.SDL_TimerID = null;
 
 	pub fn init() LibraryError!void {
 		if (initialized) return;
@@ -114,6 +114,8 @@ pub const gui = struct {
 				printError("SDL_CreateTextureFromSurface");
 				return error.Library;
 			};
+			errdefer c.SDL_DestroyTexture(texture);
+
 			const width: u31 = @intCast(surface.*.w);
 			const height: u31 = @intCast(surface.*.h);
 			return .{ ._texture = texture, ._w = width, ._h = height};
@@ -192,11 +194,9 @@ pub const gui = struct {
 			const corner_y: f32 = @as(f32, @floatFromInt(dst_coords.y)) - src_rect.h / 2.0;
 			const dst_rect: c.SDL_FRect = .{ .x = corner_x, .y = corner_y, .w = src_rect.w, .h = src_rect.h };
 
-			const ret = c.SDL_RenderTexture(window._render, image._texture, &src_rect, &dst_rect);
-			if (!ret) {
+			const ok = c.SDL_RenderTexture(window._render, image._texture, &src_rect, &dst_rect);
+			if (!ok)
 				printError("SDL_RenderTexture");
-				std.process.abort();
-			}
 		}
 
 		pub fn get_width(window: Window) u31 {
@@ -207,23 +207,17 @@ pub const gui = struct {
 		}
 
 		pub fn fill_color(window: Window, color: Color) void {
-			var ret = c.SDL_SetRenderDrawColor(window._render, color.r, color.g, color.b, 255 - color.a);
-			if (!ret) {
+			var ok = c.SDL_SetRenderDrawColor(window._render, color.r, color.g, color.b, 255 - color.a);
+			if (!ok)
 				printError("SDL_SetRenderDrawColor");
-				std.process.abort();
-			}
-			ret = c.SDL_RenderClear(window._render);
-			if (!ret) {
+			ok = c.SDL_RenderClear(window._render);
+			if (!ok)
 				printError("SDL_RenderClear");
-				std.process.abort();
-			}
 		}
 		pub fn fill_image(window: Window, image: Image) void {
-			const ret = c.SDL_RenderTexture(window._render, image._texture, null, null);
-			if (!ret) {
+			const ok = c.SDL_RenderTexture(window._render, image._texture, null, null);
+			if (!ok)
 				printError("SDL_RenderTexture");
-				std.process.abort();
-			}
 		}
 		pub fn blit_image(window: Window, image: Image, coords: Coords) void {
 			const src_rect: c.SDL_FRect = .{
@@ -245,7 +239,9 @@ pub const gui = struct {
 		}
 
 		pub fn refresh(window: Window) void {
-			assert(c.SDL_RenderPresent(window._render));
+			const ok = c.SDL_RenderPresent(window._render);
+			if (!ok)
+				printError("SDL_RenderPresent");
 		}
 	};
 
@@ -261,22 +257,22 @@ pub const gui = struct {
 			.loop => &io_gui_timer_callback_loop,
 		};
 
-		const ret = c.SDL_AddTimer(delay_ms, callback, null);
-		if (ret == 0) {
+		const timer_id = c.SDL_AddTimer(delay_ms, callback, null);
+		if (timer_id == 0) {
 			printError("SDL_AddTimer");
 			return error.Library;
 		}
 		if (repetition == .loop) {
-			timer_id = ret;
+			_timer_id = timer_id;
 		}
 	}
 	pub fn timer_stop() void {
-		if (timer_id) |id| {
+		if (_timer_id) |id| {
 			const ret = c.SDL_RemoveTimer(id);
 			if (!ret) {
 				printError("SDL_RemoveTimer");
 			}
-			timer_id = null;
+			_timer_id = null;
 		}
 	}
 	pub fn timer_clear_events() void {
@@ -290,7 +286,10 @@ pub const gui = struct {
 				c.SDL_EVENT_USER,
 				c.SDL_EVENT_USER,
 			);
-			assert(count != -1);
+			if (count == -1) {
+				printError("SDL_PeepEvents");
+				break;
+			}
 			if (count == 0) break;
 		}
 	}
@@ -305,7 +304,9 @@ pub const gui = struct {
 	pub fn get_event_blocking() Event {
 		var sdl_event: c.SDL_Event = undefined;
 		while (true) {
-			assert(c.SDL_WaitEvent(&sdl_event));
+			const ok = c.SDL_WaitEvent(&sdl_event);
+			if (!ok)
+				printError("SDL_WaitEvent");
 			if (event_from_SDL(&sdl_event)) |event| return event;
 		}
 	}
@@ -347,8 +348,8 @@ fn convert_event_coordinates(x: f32, y: f32) gui.Coords {
 	// SDL_ConvertEventToRenderCoordinates() would be better but it doesn't work.
 	var new_x: f32 = undefined;
 	var new_y: f32 = undefined;
-	const ret = c.SDL_RenderCoordinatesFromWindow(renderer, x, y, &new_x, &new_y);
-	if (!ret) {
+	const ok = c.SDL_RenderCoordinatesFromWindow(renderer, x, y, &new_x, &new_y);
+	if (!ok) {
 		printError("SDL_RenderCoordinatesFromWindow");
 		return gui.Coords {.x = @intFromFloat(x), .y = @intFromFloat(y)};
 	}
