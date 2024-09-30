@@ -100,6 +100,7 @@ pub const gui = struct {
 	pub const Coords = io_interface.gui.Coords;
 
 	pub const Image = struct {
+		_surface: *c.SDL_Surface,
 		_texture: *c.SDL_Texture,
 		_w : u31,
 		_h : u31,
@@ -109,7 +110,7 @@ pub const gui = struct {
 				printError("IMG_Load");
 				return error.Library;
 			};
-			defer c.SDL_DestroySurface(surface);
+			errdefer c.SDL_DestroySurface(surface);
 			const texture = c.SDL_CreateTextureFromSurface(renderer.?, surface) orelse {
 				printError("SDL_CreateTextureFromSurface");
 				return error.Library;
@@ -118,9 +119,10 @@ pub const gui = struct {
 
 			const width: u31 = @intCast(surface.*.w);
 			const height: u31 = @intCast(surface.*.h);
-			return .{ ._texture = texture, ._w = width, ._h = height};
+			return .{ ._surface = surface, ._texture = texture, ._w = width, ._h = height};
 		}
 		pub fn free(image: Image) void {
+			c.SDL_DestroySurface(image._surface);
 			c.SDL_DestroyTexture(image._texture);
 		}
 
@@ -131,16 +133,17 @@ pub const gui = struct {
 			return image._h;
 		}
 		pub fn get_pixel(image: Image, coords: Coords) Color {
-			// const surface = image.surface;
+			const surface = image._surface;
 			if (0 <= coords.x and coords.x < image._w) {
 				if (0 <= coords.y and coords.y < image._h) {
-					// var color: Color = undefined;
-					// assert(c.SDL_ReadSurfacePixel(surface, @intCast(coords.x), @intCast(coords.y), &color.r, &color.g, &color.b, &color.a));
-					// color.a = 255 - color.a; // SDL uses the opposite alpha convention
-					// return color;
-
-					// oups, how to read the pixel values on a texture, knowing it could cost intensive GPU/CPU ?
-					return .{ .r = 0, .g = 0, .b = 0, .a = 0 };
+					var color: Color = undefined;
+					const ok = c.SDL_ReadSurfacePixel(surface, @intCast(coords.x), @intCast(coords.y), &color.r, &color.g, &color.b, &color.a);
+					if (!ok) {
+						printError("SDL_ReadSurfacePixel");
+						return .{ .r = 0, .g = 0, .b = 0, .a = 0 };
+					}
+					color.a = 255 - color.a; // SDL uses the opposite alpha convention
+					return color;
 				}
 			}
 
